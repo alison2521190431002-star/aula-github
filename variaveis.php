@@ -14,9 +14,5 @@ echo "<br>";
 echo "nome : $nome, idade :
 $idade, Altura : $altura";
 
-
-
-
-
 ?>
 </font>
