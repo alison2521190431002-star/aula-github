@@ -6,13 +6,7 @@ use App\DAO\PessoaDAO;
 
 $dao = new PessoaDAO();
 
-$busca = $_GET['busca'] ?? '';
-
-if ($busca !== '') {
-    $pessoas = $dao->pesquisar($busca);
-} else {
-    $pessoas = $dao->listar();
-}
+$pessoas = $dao->listar();
 
 $content = '
 <div class="container py-4">
@@ -41,36 +35,26 @@ $content = '
 
         <div class="card-body p-4">
 
-            <!-- PESQUISA -->
-            <form method="GET" class="mb-4">
+            <!-- Pesquisa -->
+            <div class="mb-4">
+                <label for="pesquisaPessoa" class="form-label fw-semibold">
+                    <i class="bi bi-search me-1"></i>
+                    Pesquisar
+                </label>
 
-                <div class="input-group">
-
-                    <input
-                        type="text"
-                        name="busca"
-                        class="form-control"
-                        placeholder="Pesquisar por nome, CPF ou telefone..."
-                        value="' . htmlspecialchars($busca) . '"
-                    >
-
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-search me-1"></i>
-                        Pesquisar
-                    </button>
-
-                    <a href="pessoas.php" class="btn btn-secondary">
-                        <i class="bi bi-x-circle me-1"></i>
-                        Limpar
-                    </a>
-
-                </div>
-
-            </form>
+                <input
+                    type="text"
+                    id="pesquisaPessoa"
+                    class="form-control"
+                    placeholder="Digite o nome, CPF, telefone ou endereço..."
+                    value=""
+                    autocomplete="off"
+                >
+            </div>
 
             <div class="table-responsive">
 
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle" border="2">
 
                     <thead class="table-primary">
                         <tr>
@@ -79,19 +63,22 @@ $content = '
                             <th>CPF</th>
                             <th>Telefone</th>
                             <th>Endereço</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
 
-                    <tbody>
+                    <tbody id="tabelaPessoas">
 ';
 
 foreach ($pessoas as $pessoa) {
+
+    $id = htmlspecialchars($pessoa['id']);
 
     $content .= '
                         <tr>
 
                             <td>
-                                ' . htmlspecialchars($pessoa['id']) . '
+                                ' . $id . '
                             </td>
 
                             <td>
@@ -110,6 +97,44 @@ foreach ($pessoas as $pessoa) {
                                 ' . htmlspecialchars($pessoa['endereco'] ?? '') . '
                             </td>
 
+                            <td>
+                                <div class="d-flex gap-2">
+
+                                    <!-- EDITAR -->
+                                    <a
+                                        href="Pessoa-edit.php?id=' . $id . '"
+                                        class="btn btn-warning btn-sm"
+                                        title="Editar"
+                                    >
+                                        <i class="bi bi-pencil-fill"></i>
+                                        Editar
+                                    </a>
+
+                                    <!-- EXCLUIR -->
+                                    <form
+                                        action="Delete.php"
+                                        method="POST"
+                                        onsubmit="return confirm(\'Tem certeza que deseja excluir esta pessoa?\');"
+                                    >
+                                        <input
+                                            type="hidden"
+                                            name="id"
+                                            value="' . $id . '"
+                                        >
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-danger btn-sm"
+                                            title="Excluir"
+                                        >
+                                            <i class="bi bi-trash-fill"></i>
+                                            Excluir
+                                        </button>
+                                    </form>
+
+                                </div>
+                            </td>
+
                         </tr>
     ';
 }
@@ -118,9 +143,9 @@ if (count($pessoas) === 0) {
 
     $content .= '
                         <tr>
-                            <td colspan="5" class="text-center text-muted py-4">
+                            <td colspan="6" class="text-center text-muted py-4">
                                 <i class="bi bi-info-circle me-1"></i>
-                                Nenhuma pessoa encontrada.
+                                Nenhuma pessoa cadastrada.
                             </td>
                         </tr>
     ';
@@ -144,6 +169,31 @@ $content .= '
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
 >
+
+<script>
+
+    const pesquisa = document.getElementById("pesquisaPessoa");
+    const linhas = document.querySelectorAll("#tabelaPessoas tr");
+
+    pesquisa.addEventListener("input", function () {
+
+        const termo = this.value.toLowerCase().trim();
+
+        linhas.forEach(function (linha) {
+
+            const texto = linha.textContent.toLowerCase();
+
+            if (texto.includes(termo)) {
+                linha.style.display = "";
+            } else {
+                linha.style.display = "none";
+            }
+
+        });
+
+    });
+
+</script>
 ';
 
 include "layout.php";
